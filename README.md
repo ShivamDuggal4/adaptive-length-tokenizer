@@ -2,7 +2,7 @@
 
 This is the code repository of the paper: 
 
-> [Adaptive Length Image Tokenization via Recurrent Allocation]()  
+> [Adaptive Length Image Tokenization via Recurrent Allocation](https://arxiv.org/abs/2411.02393)  
 > [Shivam Duggal](https://shivamduggal4.github.io/), [Phillip Isola](https://web.mit.edu/phillipi/), [Antonio Torralba](https://groups.csail.mit.edu/vision/torralbalab/), [William T. Freeman](https://billf.mit.edu/)  
 > MIT CSAIL
 
