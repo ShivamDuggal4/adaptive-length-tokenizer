@@ -1,0 +1,24 @@
+name: adaptive_representations
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip=20.3
+  - pytorch-cuda=12.1
+  - pytorch==2.3.0
+  - torchvision==0.18.0
+  - pip:
+    - einops==0.3.0
+    - gdown
+    - numpy == 1.24.1
+    - omegaconf==2.0.0
+    - opencv-python
+    - pytorch-fid
+    - pytorch-lightning==1.0.8
+    - timm==0.4.9
+    - tqdm
+    - wandb
+    

@@ -1,0 +1,15 @@
+# latent_quantization arguments (used only if quantize latent is True)
+vq_codebook_size: 4096
+vq_token_dim: 12
+vq_commitment_cost: 0.25
+vq_use_l2_norm: True
+
+dynamic_halting: True
+dynamic_halting_threshold: 0.55
+
+img_size: 256
+patch_size: 16
+
+num_init_latent_tokens: 32
+max_rollout_iters: 8
+

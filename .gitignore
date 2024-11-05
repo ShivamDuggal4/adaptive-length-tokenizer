@@ -1,0 +1,9 @@
+__pycache__
+output*
+wandb
+*.pth
+*.ckpt
+datasets
+
+# Un-ignore the specific .pth
+!base_tokenizers/taming/modules/autoencoder/lpips/vgg.pth
