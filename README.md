@@ -153,6 +153,19 @@ python evaluate_rfid.py \
 
 If you can support compute resources for scaling Adaptive Tokenizers on larger datasets, bigger model sizes, extended training periods, or Video ALITs, please reach out! We are very exicted by this direction.
 
+#### Sampling Minimum Length Image Encoding
+
+To sample minimum-length encoding for the input image – <br> (We currently support only "Reconstruction Loss < Threshold" as an **Automatic Token Selection Criteria**.)
+```python
+min_length_embedding, _ = adaptive_tokenizer.encode(image_tensor, return_min_length_embedding=True) # default threshold=0.07 for reconstruction loss
+```
+
+To sample all encodings for the input image –
+```python
+all_length_embeddings, _ = adaptive_tokenizer.encode(image_tensor, return_min_length_embedding=False)
+```
+See `adaptive_tokenizer_demo.ipynb` for detailed api calls
+
 ## Citation
 
 If you use our code or the paper, please consider citing the following:

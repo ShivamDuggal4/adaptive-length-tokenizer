@@ -120,14 +120,61 @@ class AdaptiveLengthImageTokenizer(nn.Module):
         decoded_code = decoded_code.reshape(decoded_code.shape[0], 16, 16, decoded_code.shape[-1]).permute([0,3,1,2])
         return self.base_tokenizer.vae.decode(decoded_code)
 
-    def forward(self, imgs, sample_grad_iters=-1, reconstruction_iters=[], gan_optimizer_idx=None, gan_loss_weight=None):
+    def encode(self, imgs, 
+            return_min_length_embedding=True, 
+            token_selection_criteria="reconstruction_loss", threshold=0.07, 
+            return_embedding_type="latent_tokens"):
+        
+        # parameter return_all_embeddings returns multiple representations per image.
+        # parameter return_min_length_embedding returns smallest length embedding with satisfies an objective (reconstruction loss < threshold for now).
+        # parameter return_embedding_type \in ["latent_tokens", "image_and_latent_all_tokens", "image_tokens"], default="latent_tokens"
+        
+        # token selection criteria decides the satisfyable length of the embedding.
+        # right now we only support reconstruction_loss as the automatic token selection criteria.
+        # alternative TSC used in the paper require oracle / GT depth or class labels.
+        # one could also learn a token selection criteria based on input image (we might release this at some point)
+
+        reconstruction_iters = []
+        if return_min_length_embedding: 
+            assert(return_embedding_type=="latent_tokens")
+            best_tsc, best_tsc_iter = torch.inf, -1 # tsc = token selection criteria                 
+        
+        all_logs = self.forward(imgs, return_image_embeddings=True, reconstruction_iters="all")
+        all_embeddings = []
+        all_reconstructions = []
+        for iter, iter_logs_dict in enumerate(all_logs):
+            for key in iter_logs_dict.keys():
+                if return_embedding_type in key:
+                    all_embeddings.append(iter_logs_dict[key])
+                    all_reconstructions.append(iter_logs_dict["reconstructed_imgs_{}".format(key.split("_")[-1])])
+                    if return_min_length_embedding:
+                        if token_selection_criteria=="reconstruction_loss":
+                            reconstructed_imgs = iter_logs_dict["reconstructed_imgs_{}".format(key.split("_")[-1])]
+                            loglaplace_loss = torch.abs(reconstructed_imgs - imgs).mean()
+                            if loglaplace_loss < best_tsc:
+                                best_tsc = loglaplace_loss
+                                best_tsc_embed = iter_logs_dict[key]
+                                best_tsc_reconstruction = reconstructed_imgs
+                                best_tsc_iter = iter
+                            if best_tsc < threshold:
+                                # if already < threshold return the embedding and corresponding reconstruction.
+                                return best_tsc_embed, best_tsc_reconstruction
+        
+        # if threshold cannot be satisfied, return max tokens
+        if return_min_length_embedding:
+            return best_tsc_embed, best_tsc_reconstruction
+
+        return all_embeddings, all_reconstructions
+
+    
+    def forward(self, imgs, sample_grad_iters=-1, reconstruction_iters=[], gan_optimizer_idx=None, gan_loss_weight=None, return_image_embeddings=False):
         # sample_grad_iters==-1: evaluate loss at all roll out iterations (default setting). 
         # Otherwise, we randomly evaluate loss at sample_grad_iters number of iterations.
         # reconstruction_iters==[] – reconstruct back images at different iterations (default setting).
         # reconstruction_iters=="grad" – reconstruct back images at all gradient iters.
         # reconstruction_iters=="all" – reconstruct back images at all iters
 
-        # Generating image tokens, vqgan codebook index (gt_indices).
+        # Generating image tokens and pre-trained vae tokens.
         # Initializing masked_2D_tokens and init_latent_tokens
         vae_tokens = self.base_tokenizer.get_img_tokens(imgs)
         img_tokens = self.patch_embed(imgs)
@@ -166,8 +213,14 @@ class AdaptiveLengthImageTokenizer(nn.Module):
             # Latent quantization and decoding is only required either for image reconstruction at test time or for computing reconstruction loss at train time.  
             # To save compute at train time, one could randomly sample different iterations at which gradient should be computed.
             if not self.training or iter in grad_iters or iter in reconstruction_iters:
+                iter_logs_dict = {}
+                if return_image_embeddings:
+                    iter_logs_dict.update({
+                        "image_and_latent_all_tokens_{}".format(iter): x[:,1:],
+                        "image_tokens_{}".format(iter): x[:,1:num_img_tokens], # ignoring the class token, class token had no form of learning signal during training.
+                        "latent_tokens_{}".format(iter): latent_tokens
+                    })
                 latent_tokens = self.encoder_ln_post(latent_tokens)
-                latent_tokens_factorized = self.pre_quantizer_mlp(latent_tokens)
                 
                 if self.factorize_latent: latent_tokens_factorized = self.pre_quantizer_mlp(latent_tokens)
                 else: latent_tokens_factorized = latent_tokens # No factorization performed.
@@ -181,7 +234,6 @@ class AdaptiveLengthImageTokenizer(nn.Module):
                 if self.dynamic_halting: 
                     x = self.perform_dynamic_halting(x, decoded_code, gt_code, num_img_tokens)
                 
-                iter_logs_dict = {}
                 if self.training and iter in grad_iters:
                     if self.train_stage == "latent_distillation_pretrain":
                         iter_code_loss = self.forward_loss(gt_code, decoded_code)

@@ -27,7 +27,7 @@ class LPIPS(nn.Module):
     def load_from_pretrained(self, name="vgg_lpips"):
         ckpt = get_ckpt_path(name, "base_tokenizers/taming/modules/autoencoder/lpips")
         self.load_state_dict(torch.load(ckpt, map_location=torch.device("cpu")), strict=False)
-        print("loaded pretrained LPIPS loss from {}".format(ckpt))
+        # print("loaded pretrained LPIPS loss from {}".format(ckpt))
 
     @classmethod
     def from_pretrained(cls, name="vgg_lpips"):
@@ -76,7 +76,11 @@ class NetLinLayer(nn.Module):
 class vgg16(torch.nn.Module):
     def __init__(self, requires_grad=False, pretrained=True):
         super(vgg16, self).__init__()
-        vgg_pretrained_features = models.vgg16(pretrained=pretrained).features
+        # vgg_pretrained_features = models.vgg16(pretrained=pretrained).features ## this leads to a warning
+        
+        weights = models.VGG16_Weights.IMAGENET1K_V1 if pretrained else None
+        vgg_pretrained_features = models.vgg16(weights=weights).features
+
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()

@@ -79,7 +79,7 @@ def compute_reconstruction_losses(data_dir):
         all_reconstructed_imgs = sorted(glob.glob(os.path.join(data_dir, folder, "*.png")))
     
         if len(all_reconstructed_imgs) == 0:
-            print(f"Set {folder} has no images, skipping...")
+            print(f"Folder {folder} has no images, skipping...")
             assert(False)
         
         total_loglaplace_loss, total_loggaussian_loss = 0, 0
@@ -151,7 +151,9 @@ def main(args):
     np.random.seed(seed)
     cudnn.benchmark = True
 
-    if not args.testing_custom_images and os.path.exists(os.path.join(args.data_path, 'val')):
+    if not args.testing_custom_images:
+        # we used this code to evaluate on all datasets like IN100, IN-1K, COCO, WiT
+        assert(os.path.exists(os.path.join(args.data_path, 'val')))
         transform_val = transforms.Compose([
             transforms.CenterCrop(args.input_size),
             transforms.ToTensor()

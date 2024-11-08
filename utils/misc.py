@@ -400,3 +400,8 @@ class ImageFolderWithFilenames(datasets.ImageFolder):
         filename = os.path.basename(path)
         filename = path.split('/')[-2] + '_' + filename
         return original_tuple + (filename,)
+
+# dictionary to python object
+class Args:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
