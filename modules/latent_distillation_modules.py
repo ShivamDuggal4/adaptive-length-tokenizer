@@ -22,7 +22,7 @@ class Encoder(nn.Module):
     
 
 class Decoder(nn.Module):
-    def __init__(self, width, num_layers, num_heads, factorize_latent, factorized_latent_dim, output_dim, max_latent_tokens=256, mlp_ratio=4.0):
+    def __init__(self, width, num_layers, num_heads, factorize_latent, factorized_latent_dim, output_dim, max_latent_tokens=256, mlp_ratio=4.0, vis_attn_weights=False):
         super().__init__()
         
         self.num_layers = num_layers
@@ -30,10 +30,11 @@ class Decoder(nn.Module):
         if factorize_latent: self.decoder_embed = nn.Linear(factorized_latent_dim, width, bias=True)
         scale = width ** -0.5
 
+        self.vis_attn_weights = vis_attn_weights
         self.ln_pre = nn.LayerNorm(width)
         self.transformer = nn.ModuleList()
         for i in range(self.num_layers):
-            self.transformer.append(ResidualAttentionBlock(width, num_heads, mlp_ratio=mlp_ratio))
+            self.transformer.append(ResidualAttentionBlock(width, num_heads, mlp_ratio=mlp_ratio, vis_attn_weights=vis_attn_weights))
         self.ln_post = nn.LayerNorm(width)
 
         self.ffn = nn.Sequential(
@@ -51,12 +52,17 @@ class Decoder(nn.Module):
         
         x = self.ln_pre(x)
         x = x.permute(1, 0, 2)
+        all_attn_weights = []
         for i in range(self.num_layers):
-            x = self.transformer[i](x)
+            if self.vis_attn_weights:
+                x, x_weights = self.transformer[i](x)
+                all_attn_weights.append(x_weights.cpu().detach().numpy())
+            else: x = self.transformer[i](x)
         x = x.permute(1, 0, 2)
 
         reconstructed_2D_tokens = x[:, 1:masked_2D_tokens.shape[1]]
         reconstructed_2D_tokens = self.ln_post(reconstructed_2D_tokens)
         reconstructed_2D_tokens = self.ffn(reconstructed_2D_tokens)
 
+        if self.vis_attn_weights: return reconstructed_2D_tokens, all_attn_weights
         return reconstructed_2D_tokens

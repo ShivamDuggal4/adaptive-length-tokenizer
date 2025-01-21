@@ -162,9 +162,9 @@ min_length_embedding, _ = adaptive_tokenizer.encode(image_tensor, return_min_len
 
 To sample all encodings for the input image –
 ```python
-all_length_embeddings, _ = adaptive_tokenizer.encode(image_tensor, return_min_length_embedding=False)
+all_length_embeddings, _, _ = adaptive_tokenizer.encode(image_tensor, return_min_length_embedding=False)
 ```
-See `adaptive_tokenizer_demo.ipynb` for detailed api calls
+See `adaptive_tokenizer_demo.ipynb` for more details.
 
 ## Citation
 

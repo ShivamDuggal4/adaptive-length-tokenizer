@@ -9,10 +9,10 @@ class AdaptiveLengthImageTokenizer(nn.Module):
     def __init__(self, 
             base_tokenizer,
             encoder_width, encoder_num_layers, encoder_num_heads,
-            decoder_width, decoder_num_layers, decoder_num_heads,
+            decoder_width, decoder_num_layers, decoder_num_heads, visualize_decoder_attn_weights=False,
             quantize_latent=True, factorize_latent=True, vq_codebook_size=4096, vq_token_dim=12, vq_commitment_cost=0.25, vq_use_l2_norm = True,
             num_init_latent_tokens=32, img_size=256, patch_size=16, max_rollout_iters=8,
-            dynamic_halting=True, dynamic_halting_threshold=0.55, 
+            dynamic_halting=True, dynamic_halting_threshold=0.55,
             train_stage="latent_distillation_pretrain"
         ):
         
@@ -33,7 +33,7 @@ class AdaptiveLengthImageTokenizer(nn.Module):
         self.encoder_ln_recursive = nn.LayerNorm(encoder_width)
         self.pre_quantizer_mlp = nn.Linear(encoder_width, vq_token_dim, bias=True)
         self.encoder = Encoder(encoder_width, encoder_num_layers, encoder_num_heads)
-        self.decoder = Decoder(decoder_width, decoder_num_layers, decoder_num_heads, factorize_latent=self.factorize_latent, factorized_latent_dim=vq_token_dim, output_dim=base_tokenizer.codebook_size)
+        self.decoder = Decoder(decoder_width, decoder_num_layers, decoder_num_heads, factorize_latent=self.factorize_latent, factorized_latent_dim=vq_token_dim, output_dim=base_tokenizer.codebook_size, vis_attn_weights=visualize_decoder_attn_weights)
 
         self.encoder_positional_embedding = nn.Parameter(scale * torch.randn(grid_size ** 2 + 1, encoder_width))
         self.encoder_class_embedding = nn.Parameter(scale * torch.randn(1, encoder_width))
@@ -79,6 +79,8 @@ class AdaptiveLengthImageTokenizer(nn.Module):
         if self.train_stage=="latent_distillation_pretrain":
             from modules.losses.nll import LabelSmoothingCrossEntropy
             self.criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
+
+        self.visualize_decoder_attn_weights = visualize_decoder_attn_weights
         
 
     def _init_weights(self, module):
@@ -177,7 +179,7 @@ class AdaptiveLengthImageTokenizer(nn.Module):
         if return_min_length_embedding:
             return best_tsc_embed, best_tsc_reconstruction
 
-        return all_embeddings, all_reconstructions
+        return all_embeddings, all_reconstructions, all_logs
 
 
     def forward(self, imgs, sample_grad_iters=-1, reconstruction_iters=[], gan_optimizer_idx=None, gan_loss_weight=None, return_image_embeddings=False):
@@ -239,9 +241,17 @@ class AdaptiveLengthImageTokenizer(nn.Module):
                 
                 if self.quantize_latent:
                     latent_tokens_quantized, quant_result_dict = self.quantize(latent_tokens_factorized, is_quantize=True)
-                    decoded_logits = self.decoder(latent_tokens_quantized, masked_2d_tokens)
+                    if self.visualize_decoder_attn_weights:
+                        decoded_logits, decoded_attn_weights = self.decoder(latent_tokens_quantized, masked_2d_tokens)
+                        iter_logs_dict.update({"decoded_attn_weights_{}".format(iter): decoded_attn_weights})
+                    else:
+                        decoded_logits = self.decoder(latent_tokens_quantized, masked_2d_tokens)
                 else:
-                    decoded_logits = self.decoder(latent_tokens_factorized, masked_2d_tokens)
+                    if self.visualize_decoder_attn_weights:
+                        decoded_logits, decoded_attn_weights = self.decoder(latent_tokens_factorized, masked_2d_tokens)
+                        iter_logs_dict.update({"decoded_attn_weights_{}".format(iter): decoded_attn_weights})
+                    else:
+                        decoded_logits = self.decoder(latent_tokens_factorized, masked_2d_tokens)
 
                 decoded_logits_softmax = torch.nn.functional.softmax(decoded_logits, dim=-1)
                 decoded_code = torch.einsum('nlc,cd->nld', decoded_logits_softmax, self.base_tokenizer.vqgan.quantize.embedding.weight.data)
