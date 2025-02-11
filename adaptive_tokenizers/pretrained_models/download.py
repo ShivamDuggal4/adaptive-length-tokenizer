@@ -10,6 +10,9 @@ pretrained_checkpoints = {
         "alit_small_vae_continuous_latents.pth": "https://www.dropbox.com/scl/fi/bq2yzr7dufvrpnycb856b/alit_small_vae_continuous_latents.pth?rlkey=hjx6jpr6vvfzhtgkp1cc1rnrs&st=4aa1vyh9&dl=0",
         "alit_base_vqgan_quantized_latents.pth": "https://www.dropbox.com/scl/fi/6cygifz37knpqtkxgfj81/alit_base_vqgan_quantized_latents.pth?rlkey=r8hn0d4d8j8eg2wjorzl9c67s&st=c5iv7wor&dl=0",
         "alit_semilarge_vqgan_quantized_latents.pth": "https://www.dropbox.com/scl/fi/wcp7s6w86slh1yy4m3egc/alit_semilarge_vqgan_quantized_latents.pth?rlkey=cf2s13c6ah3ru4ly9tb911gi7&st=d11uoq0i&dl=0"
+    },
+    'imagenet':{
+        "alit_small_vqgan_quantized_latents.pth": "https://www.dropbox.com/scl/fi/u8jyro5wysttp5mvs6gir/alit_vqgan_small_quantized_latent.pth?rlkey=1py1s9755gjhdyw5ifd9h2wff&st=swdbevjk&dl=0",
     }
     
 }

@@ -5,6 +5,7 @@ This is the code repository of the paper:
 > [Adaptive Length Image Tokenization via Recurrent Allocation](https://arxiv.org/abs/2411.02393)  
 > [Shivam Duggal](https://shivamduggal4.github.io/), [Phillip Isola](https://web.mit.edu/phillipi/), [Antonio Torralba](https://groups.csail.mit.edu/vision/torralbalab/), [William T. Freeman](https://billf.mit.edu/)  
 > MIT CSAIL
+> ICLR 2025
 
 ## Table of Content
 [Abstract](#Abstract)  
@@ -64,7 +65,7 @@ We also evaluated ALIT on COCO val2017, NYUv2, Wikipedia Image-Text (WIT) datase
 <a name="PretrainedCheckpoints"></a>
 ## Pretrained Checkpoints
 
-Download the required checkpoint and place it at `adaptive_tokenizers/pretrained_models/imagenet100/`. Optinally run the following to download all the models:
+Download the required checkpoint and place it at `adaptive_tokenizers/pretrained_models/imagenet100/` or `adaptive_tokenizers/pretrained_models/imagenet/`. Optinally run the following to download all the models:
 
 ```bash
 python adaptive_tokenizers/pretrained_models/download.py
@@ -75,6 +76,7 @@ Figure 9. of the paper clearly shows the power of scaling the adaptive tokenizer
 
 | Adaptive Tokenizer | Base Tokenizer | Dataset | Latent Quantization | Latent Factorization | Pretrained Checkpoint |
 |--------------------|----------------|----------------|----------------------|----------------------|----------------------|
+| alit_small         | vqgan          |  ImageNet (1K)          | $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/u8jyro5wysttp5mvs6gir/alit_vqgan_small_quantized_latent.pth?rlkey=1py1s9755gjhdyw5ifd9h2wff&st=swdbevjk&dl=0)
 | alit_small         | vqgan          |  ImageNet100          | $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/iszluhiop09z3afo2gw5f/alit_small_vqgan_quantized_latents.pth?rlkey=klt0zgeunb60l1snuzhjdzdq2&st=zgwzgc2r&dl=0)
 | alit_base         | vqgan          |  ImageNet100          |  $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/6cygifz37knpqtkxgfj81/alit_base_vqgan_quantized_latents.pth?rlkey=r8hn0d4d8j8eg2wjorzl9c67s&st=c5iv7wor&dl=0)
 | alit_semilarge         | vqgan          |  ImageNet100          |  $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/wcp7s6w86slh1yy4m3egc/alit_semilarge_vqgan_quantized_latents.pth?rlkey=cf2s13c6ah3ru4ly9tb911gi7&st=d11uoq0i&dl=0)
@@ -94,7 +96,7 @@ ALIT is trained in two stages – `latent distillation pretrain` and `full finet
 We train the latent-distillation encoder / decoder modules in this stage, keeping image encoder / decoder fixed.
 
 ```bash
-set -x TRAIN_DATA_DIR $IMAGENET100_DIR # Set to $IMAGENET_DIR or some other dataset to change the training dataset.
+set -x TRAIN_DATA_DIR $IMAGENET100_DIR # Set to $IMAGENET_DIR, $IMAGENET100_DIR or some other dataset to change the training dataset.
 bash run_scripts/latent_distillation_pretrain.sh
 ```
 Reference guide for adaptive tokenizer arguments:  
@@ -165,6 +167,15 @@ To sample all encodings for the input image –
 all_length_embeddings, _, _ = adaptive_tokenizer.encode(image_tensor, return_min_length_embedding=False)
 ```
 See `adaptive_tokenizer_demo.ipynb` for more details.
+
+#### Token Visualization
+
+See `token_visualization.ipynb` for more details.
+For all such visualizations in the paper, we used Quantized 2D (VQGAN) + Quantized 1D model –alit_small_vqgan_quantized_latents.pth
+
+
+
+![](./assets/token_visualization.png)
 
 ## Citation
 
