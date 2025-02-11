@@ -65,7 +65,6 @@ We also evaluated ALIT on COCO val2017, NYUv2, Wikipedia Image-Text (WIT) datase
 ## Pretrained Checkpoints
 
 Download the required checkpoint and place it at `adaptive_tokenizers/pretrained_models/imagenet100/` or `adaptive_tokenizers/pretrained_models/imagenet/`. Optinally run the following to download all the models:
-Download the required checkpoint and place it at `adaptive_tokenizers/pretrained_models/imagenet100/` or `adaptive_tokenizers/pretrained_models/imagenet/`. Optinally run the following to download all the models:
 
 ```bash
 python adaptive_tokenizers/pretrained_models/download.py
@@ -76,7 +75,6 @@ Figure 9. of the paper clearly shows the power of scaling the adaptive tokenizer
 
 | Adaptive Tokenizer | Base Tokenizer | Dataset | Latent Quantization | Latent Factorization | Pretrained Checkpoint |
 |--------------------|----------------|----------------|----------------------|----------------------|----------------------|
-| alit_small         | vqgan          |  ImageNet (1K)          | $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/u8jyro5wysttp5mvs6gir/alit_vqgan_small_quantized_latent.pth?rlkey=1py1s9755gjhdyw5ifd9h2wff&st=swdbevjk&dl=0)
 | alit_small         | vqgan          |  ImageNet (1K)          | $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/u8jyro5wysttp5mvs6gir/alit_vqgan_small_quantized_latent.pth?rlkey=1py1s9755gjhdyw5ifd9h2wff&st=swdbevjk&dl=0)
 | alit_small         | vqgan          |  ImageNet100          | $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/iszluhiop09z3afo2gw5f/alit_small_vqgan_quantized_latents.pth?rlkey=klt0zgeunb60l1snuzhjdzdq2&st=zgwzgc2r&dl=0)
 | alit_base         | vqgan          |  ImageNet100          |  $\checkmark$         | $\checkmark$         | [Download Link](https://www.dropbox.com/scl/fi/6cygifz37knpqtkxgfj81/alit_base_vqgan_quantized_latents.pth?rlkey=r8hn0d4d8j8eg2wjorzl9c67s&st=c5iv7wor&dl=0)
@@ -172,7 +170,7 @@ See `adaptive_tokenizer_demo.ipynb` for more details.
 #### Token Visualization
 
 See `token_visualization.ipynb` for more details.  
-For all such visualizations in the paper, we used Quantized 2D (VQGAN) + Quantized 1D model –alit_small_vqgan_quantized_latents.pth
+For all such visualizations in the paper, we used Quantized 2D (VQGAN) + Quantized 1D model – `alit_small_vqgan_quantized_latents.pth`
 
 
 
